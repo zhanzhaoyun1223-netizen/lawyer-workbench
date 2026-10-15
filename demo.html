@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>律师工作台</title>
+<style>
+:root{--ink:#1c2733;--brand:#1f3a5f;--brand2:#2c5282;--gold:#b8860b;--bg:#f4f6f9;--card:#fff;--line:#e3e8ef;--muted:#6b7686;--red:#c0392b;--amber:#b7791f;--green:#2f855a;--blue:#2b6cb0}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Microsoft YaHei",system-ui,-apple-system,"PingFang SC",sans-serif;background:var(--bg);color:var(--ink);font-size:14px}
+header{background:var(--brand);color:#fff;padding:9px 18px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:50;box-shadow:0 2px 6px rgba(0,0,0,.15)}
+.logo{font-size:17px;font-weight:700;letter-spacing:1px;white-space:nowrap}
+.hbtn{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.35);color:#fff;border-radius:6px;padding:5px 12px;cursor:pointer;font-size:13px}
+.hbtn:hover{background:rgba(255,255,255,.25)}
+#caseSel{flex:0 1 340px;padding:5px 8px;border-radius:6px;border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.94);color:var(--ink);font-size:13px;max-width:340px}
+.spacer{flex:1}
+nav{background:var(--card);border-bottom:1px solid var(--line);padding:0 18px;display:flex;gap:2px;overflow-x:auto;position:sticky;top:46px;z-index:40}
+nav button{border:0;background:none;padding:12px 16px;font-size:14px;color:var(--muted);cursor:pointer;border-bottom:2.5px solid transparent;white-space:nowrap;font-family:inherit}
+nav button.on{color:var(--brand);border-bottom-color:var(--gold);font-weight:600}
+main{max-width:1180px;margin:0 auto;padding:18px}
+section{display:none}
+section.on{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:14px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.grow{flex:1}
+h2{margin:0 0 4px;font-size:17px;color:var(--brand)}
+h3{margin:16px 0 8px;font-size:14.5px;color:var(--brand2)}
+.sub{color:var(--muted);font-size:12.5px;margin-bottom:10px;line-height:1.6}
+table{width:100%;border-collapse:collapse;background:#fff}
+th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top;font-size:13px}
+th{background:#eef2f7;color:var(--brand);white-space:nowrap}
+td.wrap{word-break:break-all}
+.btn{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px;font-family:inherit}
+.btn:hover{border-color:var(--brand2);color:var(--brand2)}
+.btn-p{background:var(--brand);border-color:var(--brand);color:#fff}
+.btn-p:hover{background:var(--brand2);color:#fff}
+.btn-d{color:var(--red);border-color:#eac8c4}
+.btn-d:hover{background:#fdf1f0;border-color:var(--red);color:var(--red)}
+.btn-s{padding:3px 8px;font-size:12px;border-radius:5px}
+.badge{display:inline-block;border-radius:10px;padding:1px 9px;font-size:12px;white-space:nowrap}
+.b-red{background:#fdeceb;color:var(--red)}
+.b-amber{background:#fdf3e3;color:var(--amber)}
+.b-green{background:#e8f5ee;color:var(--green)}
+.b-gray{background:#eef1f5;color:var(--muted)}
+.b-blue{background:#e8f0fb;color:var(--blue)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px}
+.casecard{border:1px solid var(--line);border-radius:10px;padding:14px;background:#fff;cursor:pointer}
+.casecard:hover{border-color:var(--brand2);box-shadow:0 2px 8px rgba(31,58,95,.12)}
+.casecard.cur{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold) inset}
+.casecard h4{margin:0 0 6px;font-size:15px;color:var(--brand)}
+.kv{font-size:12.5px;color:var(--muted);margin:2px 0}
+label.f{display:block;font-size:12.5px;color:var(--muted);margin:10px 0 4px}
+input.f,select.f,textarea.f{width:100%;padding:7px 9px;border:1px solid var(--line);border-radius:6px;font-size:13.5px;font-family:inherit;background:#fff;color:var(--ink)}
+textarea.f{resize:vertical}
+.empty{padding:36px;text-align:center;color:var(--muted);line-height:2}
+.chk{display:flex;gap:8px;align-items:flex-start;padding:8px 4px;border-bottom:1px dashed var(--line)}
+.chk input[type=checkbox]{margin-top:3px}
+.pill-count{font-size:12px;color:var(--muted)}
+#overlay{position:fixed;inset:0;background:rgba(15,25,40,.45);display:none;align-items:flex-start;justify-content:center;z-index:100;padding:40px 16px;overflow:auto}
+#overlay.on{display:flex}
+#modal{background:#fff;border-radius:12px;max-width:640px;width:100%;box-shadow:0 8px 30px rgba(0,0,0,.25)}
+#modal.wide{max-width:900px}
+#modalHead{padding:14px 18px;border-bottom:1px solid var(--line);font-weight:700;color:var(--brand);display:flex;justify-content:space-between;align-items:center;gap:10px}
+#modalBody{padding:14px 18px;max-height:65vh;overflow:auto;line-height:1.7}
+#modalFoot{padding:12px 18px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:10px}
+#toast{position:fixed;left:50%;bottom:34px;transform:translateX(-50%);background:#2d3748;color:#fff;padding:9px 18px;border-radius:8px;font-size:13.5px;opacity:0;pointer-events:none;transition:.25s;z-index:200;max-width:80vw}
+#toast.on{opacity:1}
+pre.preview{background:#f8f9fb;border:1px solid var(--line);border-radius:8px;padding:14px;white-space:pre-wrap;font-family:"FangSong","仿宋","Microsoft YaHei",serif;font-size:14px;line-height:1.9;max-height:520px;overflow:auto;margin:0 0 10px}
+.hint{background:#f2f7ff;border:1px solid #d4e3f8;color:#3a5a83;border-radius:8px;padding:8px 12px;font-size:12.5px;margin-bottom:12px;line-height:1.7}
+.warnbox{background:#fdf6ec;border:1px solid #f0d9b5;color:#7a5b1e;border-radius:8px;padding:8px 12px;font-size:12.5px;margin:10px 0;line-height:1.7}
+.filerow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0}
+.mini{font-size:12px;color:var(--muted);line-height:1.6}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:860px){.two{grid-template-columns:1fr}}
+.klist{max-height:460px;overflow:auto;border:1px solid var(--line);border-radius:8px;padding:4px 10px;background:#fff}
+.klist table{border:0}
+.klist th,.klist td{border-bottom:1px solid var(--line);border-left:0;border-right:0;border-top:0}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">⚖ 律师工作台</div>
+  <select id="caseSel" title="当前案件"></select>
+  <button class="hbtn" id="btnNewCase">＋ 新建案件</button>
+  <div class="spacer"></div>
+  <button class="hbtn" id="btnHelp">使用指南</button>
+</header>
+<nav id="nav"></nav>
+<main>
+  <section id="tab-kanban"></section>
+  <section id="tab-timeline"></section>
+  <section id="tab-evidence"></section>
+  <section id="tab-review"></section>
+  <section id="tab-docs"></section>
+  <section id="tab-desens"></section>
+  <section id="tab-research"></section>
+  <section id="tab-settings"></section>
+</main>
+<div id="overlay"><div id="modal"><div id="modalHead"><span id="modalTitle"></span><button class="btn btn-s" onclick="closeModal()">✕</button></div><div id="modalBody"></div><div id="modalFoot"></div></div></div>
+<div id="toast"></div>
+<script>
+'use strict';
+/* ================= 基础工具 ================= */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+function today(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function nowStr(){return today()+' '+new Date().toTimeString().slice(0,5)}
+function uid(p){return p+'-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7)}
+function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('on');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('on'),2800)}
+function download(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},400)}
+function exportText(name,text,mime){download(new Blob(['\ufeff'+text],{type:mime||'text/plain;charset=utf-8'}),name)}
+function exportCSV(name,rows){const q=v=>{v=String(v??'');return /[",\r\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v};exportText(name,rows.map(r=>r.map(q).join(',')).join('\r\n'),'text/csv;charset=utf-8')}
+function exportDoc(name,title,bodyHtml){
+ const html='<html xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><title>'+esc(title)+'</title><style>'
+ +'body{font-family:"仿宋","FangSong","宋体",serif;font-size:12pt;line-height:1.8}'
+ +'h1{font-size:16pt;text-align:center;font-family:"黑体","SimHei",sans-serif}'
+ +'h2{font-size:13pt;font-family:"黑体","SimHei",sans-serif}'
+ +'table{border-collapse:collapse;width:100%}td,th{border:1px solid #555;padding:6px 8px;font-size:10.5pt;vertical-align:top;font-family:"宋体"}th{background:#eee}'
+ +'.meta{color:#555;font-size:10pt;margin-bottom:10pt}.small{font-size:9pt;color:#666}p{margin:6pt 0}</style></head><body>'+bodyHtml+'</body></html>';
+ download(new Blob(['\ufeff'+html],{type:'application/msword'}),name+'.doc')}
+function copyText(t){if(!t){toast('没有可复制的内容');return}
+ if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(()=>toast('已复制'),()=>fallbackCopy(t))}
+ else fallbackCopy(t)}
+function fallbackCopy(t){const ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');toast('已复制')}catch(e){toast('复制失败，请手动选择文本')}ta.remove()}
+
+/* ================= 数据层 ================= */
+const LS='lawyerWorkbench.v1';
+let DB;try{DB=JSON.parse(localStorage.getItem(LS))}catch(e){}
+if(!DB||typeof DB!=='object'||!Array.isArray(DB.cases))DB={cases:[],settings:{model:'glm-4.6'},cur:null,seq:1};
+if(!DB.settings)DB.settings={model:'glm-4.6'};
+function save(){try{localStorage.setItem(LS,JSON.stringify(DB))}catch(e){toast('保存失败：浏览器存储空间不足，请导出备份后清理旧案件')}}
+function curCase(){return DB.cases.find(c=>c.id===DB.cur)||null}
+function needCase(){if(!curCase()){toast('请先在页首选择或新建案件');return false}return true}
+function noCase(){return '<div class="card"><div class="empty">请先在页首选择案件<br>（或点右上角「＋ 新建案件」）</div></div>'}
+
+/* ================= 弹窗 ================= */
+function modal(o){$('#modalTitle').textContent=o.title;$('#modalBody').innerHTML=o.body;
+ $('#modal').classList.toggle('wide',!!o.wide);
+ const ft=$('#modalFoot');ft.innerHTML='';
+ const mk=(t,cls,fn)=>{const b=document.createElement('button');b.className='btn '+cls;b.textContent=t;b.onclick=fn;ft.appendChild(b)};
+ if(o.onOk)mk(o.okText||'保存','btn-p',async()=>{const r=await o.onOk();if(r!==false)closeModal()});
+ mk('取消','',closeModal);
+ $('#overlay').classList.add('on')}
+function closeModal(){$('#overlay').classList.remove('on')}
+$('#overlay').addEventListener('mousedown',e=>{if(e.target.id==='overlay')closeModal()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
+const V=id=>{const el=document.getElementById('mod-'+id);return el?el.value.trim():''};
+const fin=(id,label,val,ph)=>'<label class="f">'+label+'</label><input class="f" id="mod-'+id+'" value="'+esc(val||'')+'" placeholder="'+esc(ph||'')+'">';
+const fsel=(id,label,opts,val)=>'<label class="f">'+label+'</label><select class="f" id="mod-'+id+'">'+opts.map(o=>'<option'+(o===val?' selected':'')+'>'+esc(o)+'</option>').join('')+'</select>';
+const ftxt=(id,label,val,ph,h)=>'<label class="f">'+label+'</label><textarea class="f" id="mod-'+id+'" style="min-height:'+(h||64)+'px" placeholder="'+esc(ph||'')+'">'+esc(val||'')+'</textarea>';
+
+/* ================= 导航 ================= */
+const TABS=[['kanban','案件看板'],['timeline','时间线整理'],['evidence','证据目录'],['review','合同审查'],['docs','文书生成'],['desens','文件脱敏'],['research','依据线索'],['settings','设置']];
+let TAB='kanban';
+function buildNav(){$('#nav').innerHTML=TABS.map(t=>'<button data-t="'+t[0]+'" class="'+(t[0]===TAB?'on':'')+'">'+t[1]+'</button>').join('')}
+$('#nav').onclick=e=>{const b=e.target.closest('button');if(!b)return;TAB=b.dataset.t;buildNav();render()};
+function renderCaseSel(){const s=$('#caseSel');s.innerHTML='<option value="">— 选择当前案件 —</option>'+DB.cases.map(c=>'<option value="'+c.id+'"'+(c.id===DB.cur?' selected':'')+'>'+esc(c.name)+'</option>').join('')}
+$('#caseSel').onchange=e=>{DB.cur=e.target.value||null;save();render()};
+$('#btnNewCase').onclick=()=>caseModal();
+function render(){renderCaseSel();
+ const R={kanban:rKanban,timeline:rTimeline,evidence:rEvidence,review:rReview,docs:rDocs,desens:rDesens,research:rResearch,settings:rSettings};
+ (R[TAB]||function(){})();
+ document.querySelectorAll('main section').forEach(s=>s.classList.toggle('on',s.id==='tab-'+TAB))}
+
+/* ================= 公共导出件 ================= */
+function docMeta(c){return '<div class="meta">案件：'+esc(c.name)+'　案号：'+esc(c.number||'—')+'　我方立场：'+esc(c.role||'—')+'<br>导出时间：'+nowStr()+'　由「律师工作台」生成（工作初稿，供人工复核）</div>'}
+function reviewFoot(){return '<h2>待核实事项与复核提示</h2><p class="small">1）「待核实」条目未经证据印证，不得作为已认定事实使用；2）请人工核对日期、金额、当事人名称、案号与原件、签章及空白待填项；3）本文件为工作初稿，不构成法律意见，正式对外使用前请由执业律师复核。</p>'}
+
+/* ================= 案件看板 ================= */
+function caseModal(c){const isNew=!c;c=c||{};
+ modal({title:isNew?'新建案件':'编辑案件',body:
+  fin('name','案件名称 *',c.name,'如：某某公司买卖合同纠纷')
+  +fin('number','案号 / 内部编号',c.number)
+  +fin('client','委托人 / 当事人',c.client)
+  +fin('role','我方立场',c.role,'如：原告代理 / 乙方 / 被告')
+  +fin('opponent','对方当事人',c.opponent)
+  +fsel('status','状态',['进行中','已结案','暂缓'],c.status||'进行中')
+  +ftxt('notes','备注',c.notes,'',50),
+  onOk:()=>{const name=V('name');if(!name){toast('请填写案件名称');return false}
+   if(isNew){const nc={id:uid('c'),name:name,number:V('number'),client:V('client'),role:V('role'),opponent:V('opponent'),status:V('status'),notes:V('notes'),createdAt:Date.now(),events:[],evidence:[],clauses:[],refs:[],checklist:{type:'通用',items:[]}};
+    DB.cases.unshift(nc);DB.cur=nc.id}
+   else Object.assign(c,{name:name,number:V('number'),client:V('client'),role:V('role'),opponent:V('opponent'),status:V('status'),notes:V('notes')});
+   save();render();toast('已保存')}})}
+function setCur(id){DB.cur=id;save();render();toast('当前案件：'+curCase().name)}
+function delCase(id){const c=DB.cases.find(x=>x.id===id);
+ modal({title:'删除案件',body:'<p>确定删除「'+esc(c.name)+'」？该案件的时间线、证据、标注、依据线索将一并删除，且不可恢复。</p><p class="mini">建议先在「设置」导出 JSON 备份。</p>',okText:'删除',onOk:()=>{DB.cases=DB.cases.filter(x=>x.id!==id);if(DB.cur===id)DB.cur=DB.cases.length?DB.cases[0].id:null;save();render();toast('已删除')}})}
+function rKanban(){const el=$('#tab-kanban');
+ if(!DB.cases.length){el.innerHTML='<div class="card"><h2>案件看板</h2><p class="sub">一个案件一个档案：时间线、证据、审查意见、依据线索都挂在案件之下，跨标签页共用。</p><div class="empty">还没有案件<br><br><button class="btn btn-p" onclick="caseModal()">＋ 新建第一个案件</button></div></div>';return}
+ el.innerHTML='<div class="card"><div class="row"><div class="grow"><h2>案件看板</h2><div class="sub">共 '+DB.cases.length+' 个案件 · 点击卡片设为当前案件（页首可随时切换）</div></div><button class="btn btn-p" onclick="caseModal()">＋ 新建案件</button></div>'
+ +'<div class="grid">'+DB.cases.map(c=>{
+  const pend=c.events.filter(x=>!x.confirmed).length,gap=c.evidence.filter(x=>x.gap).length,todo=c.checklist.items.filter(i=>!i.done).length;
+  return '<div class="casecard'+(c.id===DB.cur?' cur':'')+'" onclick="setCur(\''+c.id+'\')">'
+  +'<h4>'+esc(c.name)+' '+(c.id===DB.cur?'<span class="badge b-blue">当前</span>':'')+'</h4>'
+  +'<div class="kv">案号：'+esc(c.number||'—')+'</div>'
+  +'<div class="kv">委托人：'+esc(c.client||'—')+' · 立场：'+esc(c.role||'—')+'</div>'
+  +'<div class="kv">状态：<span class="badge '+(c.status==='已结案'?'b-gray':'b-green')+'">'+esc(c.status||'进行中')+'</span></div>'
+  +'<div class="kv pill-count">时间线 '+c.events.length+'（待核实 '+pend+'）· 证据 '+c.evidence.length+'（有缺口 '+gap+'）<br>标注 '+c.clauses.length+' · 清单待办 '+todo+' · 依据 '+c.refs.length+'</div>'
+  +'<div class="row" style="margin-top:8px" onclick="event.stopPropagation()">'
+  +'<button class="btn btn-s" onclick="caseModal(DB.cases.find(x=>x.id===\''+c.id+'\'))">编辑</button> '
+  +'<button class="btn btn-s btn-d" onclick="delCase(\''+c.id+'\')">删除</button></div></div>'}).join('')+'</div></div>'}
+/* ================= 时间线整理 ================= */
+function evModal(c,ev){const isNew=!ev;ev=ev||{};
+ modal({title:isNew?'新增时间线事件':'编辑事件',body:
+  fin('date','日期',ev.date,'YYYY-MM-DD')
+  +fin('title','事件 *',ev.title,'发生了什么')
+  +fin('source','来源材料',ev.source,'如：微信聊天记录 p12 / 《购销合同》第3条')
+  +fsel('conf','状态',['已确认','待核实'],ev.confirmed===false?'待核实':'已确认')
+  +ftxt('note','备注',ev.note,'',50),
+  onOk:()=>{const t=V('title');if(!t){toast('请填写事件内容');return false}
+   const o={date:V('date'),title:t,source:V('source'),confirmed:V('conf')==='已确认',note:V('note')};
+   if(isNew)c.events.push(Object.assign({id:uid('e')},o));else Object.assign(ev,o);
+   c.events.sort((a,b)=>(a.date||'9999').localeCompare(b.date||'9999'));save();render()}})}
+function tglEv(id){const c=curCase(),ev=c.events.find(x=>x.id===id);ev.confirmed=!ev.confirmed;save();render()}
+function delEv(id){const c=curCase(),ev=c.events.find(x=>x.id===id);
+ modal({title:'删除事件',body:'<p>删除事件「'+esc(ev.title)+'」？</p>',okText:'删除',onOk:()=>{c.events=c.events.filter(x=>x.id!==id);save();render()}})}
+function tlRows(c){return c.events.map(ev=>[ev.date||'未填日期',ev.title,ev.source||'',ev.confirmed?'已确认':'待核实',ev.note||''])}
+function tlExport(kind){const c=curCase();if(!c.events.length){toast('暂无事件');return}
+ const head=['日期','事件','来源材料','状态','备注'],rows=tlRows(c);
+ if(kind==='csv')return exportCSV(c.name+'-时间线-'+today(),[head].concat(rows));
+ if(kind==='md'){exportText(c.name+'-时间线-'+today()+'.md','# 时间线：'+c.name+'\n\n| '+head.join(' | ')+' |\n|---|---|---|---|---|\n'+rows.map(r=>'| '+r.map(x=>String(x).replace(/\|/g,'\\|').replace(/\n/g,' ')).join(' | ')+' |').join('\n')+'\n');return}
+ const pend=c.events.filter(x=>!x.confirmed).length;
+ exportDoc(c.name+'-时间线-'+today(),'时间线：'+c.name,docMeta(c)+'<h1>时间线整理表</h1><table><tr>'+head.map(h=>'<th>'+h+'</th>').join('')+'</tr>'
+  +rows.map(r=>'<tr>'+r.map(x=>'<td>'+esc(x)+'</td>').join('')+'</tr>').join('')+'</table>'
+  +'<p class="small">共 '+c.events.length+' 条，其中待核实 '+pend+' 条；待核实条目未经证据印证，不得作为已认定事实使用。</p>'+reviewFoot())}
+function rTimeline(){const el=$('#tab-timeline'),c=curCase();
+ if(!c){el.innerHTML=noCase();return}
+ const pend=c.events.filter(x=>!x.confirmed).length;
+ el.innerHTML='<div class="card"><div class="row"><div class="grow"><h2>时间线整理</h2><div class="sub">当前案件：'+esc(c.name)+' · 共 '+c.events.length+' 条 · 待核实 <b>'+pend+'</b> 条（待核实事项不作为已认定事实使用）</div></div>'
+  +'<button class="btn btn-p" onclick="evModal(curCase())">＋ 事件</button>'
+  +'<button class="btn" onclick="tlExport(\'doc\')">导出 Word</button><button class="btn" onclick="tlExport(\'md\')">Markdown</button><button class="btn" onclick="tlExport(\'csv\')">CSV</button></div>'
+  +(c.events.length?'<div style="overflow:auto"><table><tr><th style="width:92px">日期</th><th>事件</th><th style="width:200px">来源材料</th><th style="width:84px">状态</th><th style="width:120px">操作</th></tr>'
+   +c.events.map(ev=>'<tr><td>'+esc(ev.date||'—')+'</td><td class="wrap"><b>'+esc(ev.title)+'</b>'+(ev.note?'<div class="mini">'+esc(ev.note)+'</div>':'')+'</td><td class="wrap">'+esc(ev.source||'—')+'</td><td><span class="badge '+(ev.confirmed?'b-green':'b-amber')+'" style="cursor:pointer" title="点击切换状态" onclick="tglEv(\''+ev.id+'\')">'+(ev.confirmed?'已确认':'待核实')+'</span></td><td><button class="btn btn-s" onclick="evModal(curCase(),curCase().events.find(x=>x.id===\''+ev.id+'\'))">编辑</button> <button class="btn btn-s btn-d" onclick="delEv(\''+ev.id+'\')">删</button></td></tr>').join('')
+   +'</table></div>':'<div class="empty">暂无事件，点击「＋ 事件」从最早的日期开始记；来源材料务必填，方便回查。</div>')+'</div>'}
+
+/* ================= 证据目录 ================= */
+function evdModal(c,d){const isNew=!d;d=d||{};
+ const no=d.no||String(c.evidence.length+1);
+ modal({title:isNew?'新增证据':'编辑证据',body:
+  fin('no','编号',no)
+  +fin('name','证据名称 *',d.name,'如：《购销合同》/ 微信聊天记录')
+  +fin('source','来源',d.source,'如：被告提供 / 原告自持')
+  +ftxt('purpose','证明目的',d.purpose,'拟证明的事实',60)
+  +ftxt('nature','三性及备注',d.nature,'真实性 / 合法性 / 关联性备注',60)
+  +ftxt('gap','证据缺口与补证建议',d.gap,'还缺什么、如何补强',60),
+  onOk:()=>{const name=V('name');if(!name){toast('请填写证据名称');return false}
+   const o={no:V('no'),name:name,source:V('source'),purpose:V('purpose'),nature:V('nature'),gap:V('gap')};
+   if(isNew)c.evidence.push(Object.assign({id:uid('d')},o));else Object.assign(d,o);save();render()}})}
+function delEvd(id){const c=curCase();
+ modal({title:'删除证据',body:'<p>删除该条证据？</p>',okText:'删除',onOk:()=>{c.evidence=c.evidence.filter(x=>x.id!==id);save();render()}})}
+function moveEvd(id,dir){const c=curCase(),i=c.evidence.findIndex(x=>x.id===id),j=i+dir;if(j<0||j>=c.evidence.length)return;
+ const a=c.evidence[i];c.evidence[i]=c.evidence[j];c.evidence[j]=a;save();render()}
+function evdRows(c){return c.evidence.map(d=>[d.no||'',d.name,d.source||'',d.purpose||'',d.nature||'',d.gap||''])}
+function evdTableHtml(c){return '<table><tr><th>编号</th><th>证据名称</th><th>来源</th><th>证明目的</th><th>三性及备注</th><th>缺口与补证建议</th></tr>'
+ +evdRows(c).map(r=>'<tr>'+r.map(x=>'<td>'+esc(x)+'</td>').join('')+'</tr>').join('')+'</table>'}
+function evdExport(kind){const c=curCase();if(!c.evidence.length){toast('暂无证据');return}
+ const head=['编号','证据名称','来源','证明目的','三性及备注','缺口与补证建议'],rows=evdRows(c),gap=c.evidence.filter(x=>x.gap).length;
+ if(kind==='csv')return exportCSV(c.name+'-证据目录-'+today(),[head].concat(rows));
+ if(kind==='md'){exportText(c.name+'-证据目录-'+today()+'.md','# 证据目录：'+c.name+'\n\n| '+head.join(' | ')+' |\n|---|---|---|---|---|---|\n'+rows.map(r=>'| '+r.map(x=>String(x).replace(/\|/g,'\\|').replace(/\n/g,' ')).join(' | ')+' |').join('\n')+'\n');return}
+ exportDoc(c.name+'-证据目录-'+today(),'证据目录：'+c.name,docMeta(c)+'<h1>证据目录</h1>'+evdTableHtml(c)+'<p class="small">共 '+c.evidence.length+' 项，其中 '+gap+' 项标注了证据缺口，请按补证建议跟进。</p>'+reviewFoot())}
+function rEvidence(){const el=$('#tab-evidence'),c=curCase();
+ if(!c){el.innerHTML=noCase();return}
+ const gap=c.evidence.filter(x=>x.gap).length;
+ el.innerHTML='<div class="card"><div class="row"><div class="grow"><h2>证据目录</h2><div class="sub">当前案件：'+esc(c.name)+' · 共 '+c.evidence.length+' 项 · 标注缺口 <b>'+gap+'</b> 项</div></div>'
+  +'<button class="btn btn-p" onclick="evdModal(curCase())">＋ 证据</button>'
+  +'<button class="btn" onclick="evdExport(\'doc\')">导出 Word</button><button class="btn" onclick="evdExport(\'md\')">Markdown</button><button class="btn" onclick="evdExport(\'csv\')">CSV</button></div>'
+  +(c.evidence.length?'<div style="overflow:auto"><table><tr><th style="width:52px">编号</th><th>证据名称 / 证明目的</th><th style="width:130px">来源</th><th style="width:170px">三性及备注</th><th style="width:170px">缺口与补证</th><th style="width:130px">操作</th></tr>'
+   +c.evidence.map((d,i)=>'<tr><td>'+esc(d.no||i+1)+'</td><td class="wrap"><b>'+esc(d.name)+'</b>'+(d.purpose?'<div class="mini">证明目的：'+esc(d.purpose)+'</div>':'')+'</td><td class="wrap">'+esc(d.source||'—')+'</td><td class="wrap">'+esc(d.nature||'—')+'</td><td class="wrap">'+(d.gap?'<span class="badge b-amber">有缺口</span> '+esc(d.gap):'—')+'</td><td>'
+    +'<button class="btn btn-s" onclick="evdModal(curCase(),curCase().evidence.find(x=>x.id===\''+d.id+'\'))">编辑</button> '
+    +'<button class="btn btn-s" onclick="moveEvd(\''+d.id+'\',-1)" title="上移">↑</button><button class="btn btn-s" onclick="moveEvd(\''+d.id+'\',1)" title="下移">↓</button> '
+    +'<button class="btn btn-s btn-d" onclick="delEvd(\''+d.id+'\')">删</button></td></tr>').join('')
+   +'</table></div>':'<div class="empty">暂无证据。建议按「证据名称→来源→证明目的」逐项登记，发现缺口当场写补证建议。</div>')+'</div>'}
+/* ================= 合同审查 ================= */
+const LV=['必须修改','建议谈判','可接受'];
+const CLV={1:'b-red',2:'b-amber',3:'b-green'};
+const CLAUSE_TYPES=['付款条件','验收与交付','知识产权','责任限制','违约责任','解除与终止','争议解决','空白待填','主体与资质','保密与其他','其他'];
+const CK={
+'通用':['合同主体资格与签章页（名称、统一社会信用代码、签字人权限）','合同价款、付款方式与付款节点是否明确','履行期限、地点、方式与验收标准是否明确','违约责任是否可量化、可执行','解除与终止条件及后果','争议解决条款（管辖法院/仲裁机构）','通知与送达条款','空白待填项、附件清单是否齐全'],
+'买卖合同':['标的物名称、规格、数量与质量标准','包装、运输方式与费用承担','交付时间、地点与风险转移节点','验收程序、异议期限及「逾期未提异议视为合格」的合理性','价款、发票类型与付款节奏','所有权保留条款','质保期、退换货与违约赔偿上限','逾期付款利息与逾期交货违约金是否对等'],
+'技术服务':['服务范围与交付物清单（防范围蔓延）','验收标准、验收流程与视为验收条款','开发成果/交付物的知识产权归属','第三方素材与开源组件的授权风险','保密范围与期限','付款节点是否与验收通过挂钩','变更管理与追加费用机制','责任限制（间接损失、赔偿上限）与延期违约金'],
+'房屋租赁':['租赁期限与免租期','租金、押金、支付周期与递增条款','维修责任划分与物业费承担','转租与装修改动权限','提前解约的违约金与押金处理','优先承租权/优先购买权','征收、拆迁情形的处理','水电费用与发票开具义务'],
+'劳动合同':['合同期限与试用期（上限匹配）','工作内容、地点与岗位调整权限','工时制度与加班费基数','工资构成、发放日期与绩效工资约定','社会保险与住房公积金缴纳','竞业限制（范围、期限、补偿金）与服务期','解除与终止条件、经济补偿','规章制度送达与确认'],
+'借款合同':['本金、利率与计息方式（民间借贷注意法定上限）','还款方式、期限与提前还款','逾期利息、违约金合计上限','担保措施（保证/抵押/质押）与登记义务','资金用途与监管','陈述保证与财务监督权','实现债权的费用承担（律师费、诉讼费）','管辖与送达条款'],
+'股权转让':['股权权属与权利负担（质押、冻结）核查','转让价款、支付节奏与共管账户','工商变更登记义务与期限','过渡期损益归属与经营限制','陈述保证与或有债务承担','税费承担（所得税、印花税）','违约金与定金条款','其他股东优先购买权/同意程序'],
+'保密协议':['保密信息定义与例外','保密期限的合理性','使用目的限制与返还销毁','是否夹带竞业/招揽限制','违约金与实际损失赔偿的关系','知识产权归属','单向/双向义务与对价','允许披露的情形（法律强制、监管要求）']};
+let clFilterV='';
+function applyCK(){const c=curCase(),t=$('#ckType').value;
+ modal({title:'套用默认清单',body:'<p>用「'+esc(t)+'」的默认审查要点<b>替换</b>当前清单？现有勾选与备注将丢失。</p>',okText:'替换',onOk:()=>{c.checklist={type:t,items:CK[t].map(x=>({id:uid('k'),text:x,done:false,note:''}))};save();render();toast('已套用 '+t+' 默认清单（'+CK[t].length+' 项）')}})}
+function ckToggle(i){const c=curCase();c.checklist.items[i].done=!c.checklist.items[i].done;save();rReview()}
+function ckDel(i){const c=curCase();modal({title:'删除要点',body:'<p>删除该要点？</p>',okText:'删除',onOk:()=>{c.checklist.items.splice(i,1);save();rReview()}})}
+function ckNote(i){const c=curCase(),it=c.checklist.items[i];
+ modal({title:'要点备注',body:ftxt('note','备注（核查情况、对应条款位置等）',it.note,'',90),onOk:()=>{it.note=V('note');save();rReview()}})}
+function ckAdd(){const c=curCase();
+ modal({title:'自定义审查要点',body:fin('text','要点内容 *','')+ftxt('note','备注','','',60),
+  onOk:()=>{const t=V('text');if(!t){toast('请填写要点内容');return false}
+   c.checklist.items.push({id:uid('k'),text:t,done:false,note:V('note')});save();rReview();toast('已添加')}})}
+function clAdd(){const c=curCase(),text=$('#clText').value.trim();
+ if(!text){toast('请先粘贴条款原文');return}
+ c.clauses.push({id:uid('l'),pos:$('#clPos').value.trim(),text:text,level:$('#clLv').value,type:$('#clType').value,note:$('#clNote').value.trim()});
+ save();rReview();toast('已标注：'+$('#clLv').value)}
+function clDel(id){const c=curCase();modal({title:'删除标注',body:'<p>删除该条标注？</p>',okText:'删除',onOk:()=>{c.clauses=c.clauses.filter(x=>x.id!==id);save();rReview()}})}
+function clEdit(id){const c=curCase(),x=c.clauses.find(v=>v.id===id);
+ modal({title:'编辑标注',body:fin('pos','条款位置',x.pos)+ftxt('text','原文摘录',x.text,'',90)
+  +fsel('level','风险等级',LV,x.level)+fsel('type','问题类型',CLAUSE_TYPES,x.type)
+  +ftxt('note','修改建议 / 批注',x.note,'',90),
+  onOk:()=>{Object.assign(x,{pos:V('pos'),text:V('text'),level:V('level'),type:V('type'),note:V('note')});save();rReview()}})}
+function clAI(){const text=$('#clText').value.trim();
+ if(!text){toast('请先粘贴条款原文');return}
+ const k=DB.settings.apiKey;if(!k){toast('未配置 AI：请到「设置」填智谱 API Key 并保存');return}
+ toast('AI 分析中…');
+ aiChat('你是资深中国合同律师助理。对给定合同条款做立场化风险分析，仅输出 JSON 对象：{"level":"必须修改|建议谈判|可接受","type":"付款条件|验收与交付|知识产权|责任限制|违约责任|解除与终止|争议解决|空白待填|主体与资质|保密与其他|其他","note":"50-150字修改建议与理由"}。不输出 JSON 以外的任何内容。','条款：\n'+text,600)
+  .then(out=>{const m=out.match(/\{[\s\S]*\}/);if(!m)throw new Error('返回格式异常');
+   const j=JSON.parse(m[0]);
+   if(LV.includes(j.level))$('#clLv').value=j.level;
+   if(CLAUSE_TYPES.includes(j.type))$('#clType').value=j.type;
+   $('#clNote').value=j.note||'';toast('AI 建议已填入，请人工确认后加入标注')})
+  .catch(e=>toast('AI 分析失败：'+e.message))}
+function clExport(){const c=curCase();if(!c.clauses.length){toast('暂无标注');return}
+ const n=LV.map(l=>c.clauses.filter(x=>x.level===l).length);
+ const shown=clFilterV?c.clauses.filter(x=>x.level===clFilterV):c.clauses;
+ exportDoc(c.name+'-合同审查意见表-'+today(),'合同审查意见表：'+c.name,
+  docMeta(c)+'<h1>合同审查意见表</h1>'
+  +'<p class="small">风险分级：必须修改 '+n[0]+' 条 · 建议谈判 '+n[1]+' 条 · 可接受 '+n[2]+' 条　合同类型：'+esc(c.checklist.type||'通用')+'</p>'
+  +'<table><tr><th style="width:70px">条款位置</th><th>原文摘录</th><th style="width:70px">风险等级</th><th style="width:80px">问题类型</th><th>修改建议</th></tr>'
+  +shown.map(x=>'<tr><td>'+esc(x.pos||'—')+'</td><td>'+esc(x.text)+'</td><td><span class="lv'+(LV.indexOf(x.level)+1)+'">'+esc(x.level)+'</span></td><td>'+esc(x.type)+'</td><td>'+esc(x.note||'—')+'</td></tr>').join('')+'</table>'
+  +'<h2>审查要点核查情况</h2><p class="small">'+(c.checklist.items.filter(i=>i.done).map(i=>'☑ '+esc(i.text)).concat(c.checklist.items.filter(i=>!i.done).map(i=>'☐ '+esc(i.text)+'（待核查）')).join('；')||'未使用要点清单')+'</p>'
+  +reviewFoot())}
+function rReview(){const el=$('#tab-review'),c=curCase();
+ if(!c){el.innerHTML=noCase();return}
+ const items=c.checklist.items,done=items.filter(i=>i.done).length;
+ const lvN=LV.map(l=>c.clauses.filter(x=>x.level===l).length);
+ const shown=clFilterV?c.clauses.filter(x=>x.level===clFilterV):c.clauses;
+ el.innerHTML='<div class="card"><div class="row"><div class="grow"><h2>审查要点清单</h2><div class="sub">当前案件：'+esc(c.name)+' · 按合同类型逐项核查 · 已核 <b>'+done+'/'+items.length+'</b></div></div>'
+  +'<select class="f" id="ckType" style="width:150px">'+Object.keys(CK).map(t=>'<option'+(t===(c.checklist.type||'通用')?' selected':'')+'>'+t+'</option>').join('')+'</select>'
+  +'<button class="btn" onclick="applyCK()">套用默认清单</button><button class="btn" onclick="ckAdd()">＋ 自定义要点</button></div>'
+  +(items.length?'<div class="klist">'+items.map((it,i)=>'<div class="chk"><input type="checkbox"'+(it.done?' checked':'')+' onchange="ckToggle('+i+')"><div class="grow" style="flex:1"><div style="'+(it.done?'text-decoration:line-through;color:#98a2b3':'')+'">'+esc(it.text)+'</div>'+(it.note?'<div class="mini">备注：'+esc(it.note)+'</div>':'')+'</div><button class="btn btn-s" onclick="ckNote('+i+')">备注</button> <button class="btn btn-s btn-d" onclick="ckDel('+i+')">删</button></div>').join('')+'</div>':'<div class="empty">清单为空：选择合同类型后点「套用默认清单」，或添加自定义要点。</div>')+'</div>'
+ +'<div class="card"><h2>条款风险标注</h2><div class="sub">立场化标注：每条意见注明风险等级与问题类型（为当事人争取利益的口径）。「AI 分析」需在设置中配置智谱 API Key，结果仅供参考、须经人工确认。</div>'
+ +'<div class="two"><div>'
+  +'<label class="f">条款位置</label><input class="f" id="clPos" placeholder="如：第 5.2 条">'
+  +'<label class="f">原文摘录</label><textarea class="f" id="clText" placeholder="粘贴或摘录条款原文"></textarea>'
+  +'<div class="row"><div style="flex:1"><label class="f">风险等级</label><select class="f" id="clLv">'+LV.map(l=>'<option>'+l+'</option>').join('')+'</select></div>'
+  +'<div style="flex:1"><label class="f">问题类型</label><select class="f" id="clType">'+CLAUSE_TYPES.map(t=>'<option>'+t+'</option>').join('')+'</select></div></div>'
+  +'<label class="f">修改建议 / 批注</label><textarea class="f" id="clNote" placeholder="建议如何修改，理由是什么"></textarea>'
+  +'<div class="row" style="margin-top:10px"><button class="btn btn-p" onclick="clAdd()">＋ 加入标注</button><button class="btn" onclick="clAI()">🤖 AI 分析此条款</button></div>'
+ +'</div><div>'
+  +'<div class="row"><div class="grow sub">已标注 '+c.clauses.length+' 条：必须修改 <b>'+lvN[0]+'</b> · 建议谈判 <b>'+lvN[1]+'</b> · 可接受 <b>'+lvN[2]+'</b></div>'
+  +'<select class="f" style="width:130px" onchange="clFilterV=this.value;rReview()"><option value=""'+(clFilterV?'':' selected')+'>全部等级</option>'+LV.map(l=>'<option'+(clFilterV===l?' selected':'')+'>'+l+'</option>').join('')+'</select>'
+  +'<button class="btn" onclick="clExport()">导出审查意见表 Word</button></div>'
+  +(shown.length?'<div style="overflow:auto;max-height:430px"><table><tr><th style="width:64px">位置</th><th>摘录与建议</th><th style="width:74px">等级</th><th style="width:90px">类型</th><th style="width:64px">操作</th></tr>'
+   +shown.map(x=>'<tr><td>'+esc(x.pos||'—')+'</td><td class="wrap">'+esc(x.text.length>60?x.text.slice(0,60)+'…':x.text)+(x.note?'<div class="mini">建议：'+esc(x.note)+'</div>':'')+'</td><td><span class="badge '+CLV[LV.indexOf(x.level)+1]+'">'+esc(x.level)+'</span></td><td>'+esc(x.type)+'</td><td><button class="btn btn-s" onclick="clEdit(\''+x.id+'\')">编辑</button> <button class="btn btn-s btn-d" onclick="clDel(\''+x.id+'\')">删</button></td></tr>').join('')
+   +'</table></div>':'<div class="empty">右侧粘贴条款原文并标注风险等级，逐条积累审查意见。</div>')
+ +'</div></div></div>'}
+/* ================= 文书生成 ================= */
+function num(t){const a=String(t||'').split('\n').map(s=>s.trim()).filter(Boolean);return a.map((s,i)=>(i+1)+'. '+s).join('\n')||'（请填写）'}
+const TPLS={
+lawyer:{name:'律师函',fields:[
+ ['to','致送对象','如：某某有限公司',0],['matter','事由','如：拖欠货款',0],['client','委托人','',0],
+ ['firm','律师事务所','如：某某律师事务所',0],['lawyer','经办律师','',0],['phone','联系电话','',0],
+ ['facts','事实与理由','简述交易背景与对方违约/侵权事实，注明证据出处',1],
+ ['law','法律依据','每行一条，如：《中华人民共和国民法典》第五百七十七条',1],
+ ['demands','要求','每行一条',1],['deadline','履行期限','如：收函后 7 日内',0],['date','函件日期',today(),0]],
+build:f=>'律　师　函\n\n致：'+(f.to||'＿＿＿＿')+'\n\n'
+ +(f.firm||'＿＿律师事务所')+'依法接受'+(f.client||'委托人')+'的委托，指派'+(f.lawyer||'＿')+'律师就'+(f.matter||'相关')+'事宜致函如下：\n\n'
+ +'一、事实与理由\n'+(f.facts||'（简述合同/交易背景、履行情况与对方违约事实，并注明证据出处）')+'\n\n'
+ +'二、法律依据\n'+(f.law||'（视具体案件补充现行有效的法律、司法解释条文）')+'\n\n'
+ +'三、律师意见与要求\n基于上述事实与法律规定，现郑重要求：\n'+num(f.demands)+'\n\n'
+ +'请于'+(f.deadline||'收函后 7 日内')+'履行上述义务。如逾期未履行，委托人将保留通过诉讼、仲裁、财产保全等法律途径追究法律责任的权利，由此产生的一切费用与不利后果由你方承担。\n\n'
+ +'特此函告。\n\n\n'+(f.firm||'')+'\n'+(f.lawyer||'')+'　律师\n'+(f.phone?'联系电话：'+f.phone+'\n':'')+(f.date||today())+'\n\n'
+ +'附注：本函基于委托人陈述及现有材料作出，仅供交涉使用；引用法条请核对现行有效版本，最终文本以正式签章版为准。'},
+demand:{name:'催款函',fields:[
+ ['to','致送对象','欠款方名称',0],['sender','发函方（我方）','',0],['contractNo','合同/订单编号','',0],
+ ['dueDate','约定付款日','YYYY-MM-DD',0],['amount','欠款金额（元）','',0],
+ ['detail','款项明细','每行一条：货款／利息等',1],['interest','逾期利息主张','如：按每日万分之五 / 按 LPR 四倍',0],
+ ['account','收款账户','',0],['deadline','付款期限','如：收函后 5 日内',0],['date','函件日期',today(),0]],
+build:f=>'催　款　函\n\n致：'+(f.to||'＿＿＿＿')+'\n\n'
+ +(f.sender||'我方')+'与贵方'+(f.contractNo?'（合同/订单编号：'+f.contractNo+'）':'')+'项下交易，贵方应于'+(f.dueDate||'约定付款日')+'前支付相应款项。截至本函出具之日，贵方尚欠款项人民币 '+(f.amount||'＿')+' 元，明细如下：\n'+(f.detail||'')+'\n\n'
+ +'根据双方合同约定及《中华人民共和国民法典》第五百七十七条等规定（具体条文请按案件性质核对后补充）现催告如下：\n'
+ +'一、请于'+(f.deadline||'收函后 5 日内')+'前将上述款项付至如下账户：'+(f.account||'＿＿＿＿')+'；\n'
+ +'二、逾期未付的，我方将按'+(f.interest||'约定标准')+'主张逾期利息，并保留通过诉讼、申请财产保全等途径追究违约责任的权利。\n\n'
+ +'特此函告。\n\n'+(f.sender||'')+'\n'+(f.date||today())+'\n\n附注：本函为催告文书初稿，正式发出前请核对欠款金额、账期与合同依据。'},
+memo:{name:'法律备忘录',fields:[
+ ['to','致','',0],['from','自（经办人）','',0],['re','事由','',0],['version','版本','内部分析版 / 客户可读版',0],
+ ['question','待决问题','',1],['conclusion','初步结论（先行）','',1],
+ ['facts','事实概要','区分「已确认」与「待核实」，注明材料来源',1],
+ ['law','法律依据','每行一条，含文号与条文序号',1],['analysis','法律分析','',1],
+ ['risks','风险与例外','',1],['advice','建议与下一步','',1],['date','日期',today(),0]],
+build:f=>'法 律 备 忘 录\n\n致：'+(f.to||'＿')+'　　自：'+(f.from||'＿')+'　　日期：'+(f.date||today())+'\n事由：'+(f.re||'＿')+'　　（'+(f.version||'内部分析版')+'）\n\n'
+ +'一、待决问题\n'+(f.question||'＿')+'\n\n二、初步结论（结论先行）\n'+(f.conclusion||'＿')+'\n\n'
+ +'三、事实概要\n（提示：区分「已确认事实」与「待核实事实」，并注明材料来源）\n'+(f.facts||'＿')+'\n\n'
+ +'四、法律分析\n'+(f.law?'依据：\n'+f.law+'\n\n':'')+(f.analysis||'＿')+'\n\n'
+ +'五、风险与例外\n'+(f.risks||'＿')+'\n\n六、建议与下一步\n'+(f.advice||'＿')+'\n\n'
+ +'──────────────\n本备忘录系工作初稿，基于既有材料与检索结果作出，不构成正式法律意见；引用法条请在官方数据库核对现行有效版本。'},
+suit:{name:'民事起诉状',fields:[
+ ['plaintiff','原告信息','姓名/名称、住所、身份证号/统一社会信用代码、法定代表人、联系电话（每行一项）',1],
+ ['defendant','被告信息','同上（每行一项）',1],
+ ['claims','诉讼请求','每行一条，如：判令被告支付货款人民币＿元',1],
+ ['facts','事实与理由','按时间线组织，注明证据出处',1],
+ ['court','受诉法院','',0],['suitor','具状人','',0],['date','日期',today(),0]],
+build:f=>{const cs=String(f.claims||'').split('\n').map(s=>s.trim()).filter(Boolean);
+ cs.push('本案诉讼费用由被告承担');
+ return '民事起诉状\n\n原告：'+(f.plaintiff||'＿＿＿＿')+'\n\n被告：'+(f.defendant||'＿＿＿＿')+'\n\n'
+ +'诉讼请求：\n'+cs.map((s,i)=>(i+1)+'. '+s).join('\n')+'\n\n'
+ +'事实与理由：\n'+(f.facts||'＿')+'\n\n'
+ +'综上，依据《中华人民共和国民事诉讼法》第一百二十二条之规定，特向贵院提起诉讼，请求依法判如所请。\n\n'
+ +'此致\n'+(f.court||'＿＿＿＿人民法院')+'\n\n'
+ +'具状人：'+(f.suitor||'＿＿＿＿')+'\n'+(f.date||today())+'\n\n'
+ +'附：1．本起诉状副本＿份（按被告人数提交）；2．证据清单及证据材料（见证据目录）。'}}};
+let docTpl='lawyer',docVals={};
+function setTpl(k){docTpl=k;rDocs()}
+function rDocs(){const el=$('#tab-docs'),c=curCase(),T=TPLS[docTpl];
+ const val=k=>docVals[docTpl+'.'+k]||'';
+ el.innerHTML='<div class="card"><h2>文书生成</h2><div class="sub">模板填充生成初稿——基于你填写的信息，工具不虚构事实；对外送达版须经执业律师复核签发。</div>'
+  +'<div class="row">'+Object.entries(TPLS).map(kv=>'<button class="btn '+(kv[0]===docTpl?'btn-p':'')+'" onclick="setTpl(\''+kv[0]+'\')">'+kv[1].name+'</button>').join('')+'</div>'
+  +'<div class="two" style="margin-top:12px"><div>'
+  +T.fields.map(fd=>fd[3]?ftxt('dv_'+fd[0],fd[1],val(fd[0]),fd[2],110):fin('dv_'+fd[0],fd[1],val(fd[0]),fd[2])).join('')
+  +'<div class="row" style="margin-top:10px"><button class="btn" onclick="docFromCase()">引用当前案件信息</button>'
+  +(docTpl==='suit'?'<label class="mini"><input type="checkbox" id="docEv" checked> 导出时附证据目录（当前案件）</label>':'')+'</div>'
+  +'</div><div><label class="f">预览（随输入实时更新）</label><pre class="preview" id="docPrev"></pre>'
+  +'<div class="row"><button class="btn btn-p" onclick="docExp(\'doc\')">导出 Word</button><button class="btn" onclick="docExp(\'md\')">导出 Markdown</button><button class="btn" onclick="docCopy()">复制全文</button></div>'
+  +'</div></div></div>';
+ el.oninput=()=>{docSync();$('#docPrev').textContent=docText()};
+ el.oninput()}
+function docSync(){const T=TPLS[docTpl];T.fields.forEach(fd=>{const el2=$('#mod-dv_'+fd[0]);if(el2)docVals[docTpl+'.'+fd[0]]=el2.value})}
+function docData(){const T=TPLS[docTpl],f={};T.fields.forEach(fd=>{f[fd[0]]=(docVals[docTpl+'.'+fd[0]]||'').trim()});return f}
+function docText(){return TPLS[docTpl].build(docData())}
+function docFromCase(){const c=curCase();if(!c){toast('请先选择案件');return}
+ [['client',c.client],['to',c.opponent],['defendant',c.opponent],['re',c.name]].forEach(m=>{const el2=$('#mod-dv_'+m[0]);if(el2&&!el2.value.trim())el2.value=m[1]||''});
+ docSync();$('#docPrev').textContent=docText();toast('已引用当前案件信息（仅填充空字段）')}
+function docExp(kind){const T=TPLS[docTpl],text=docText(),fname=T.name+'-'+today();
+ if(kind==='md')return exportText(fname+'.md','# '+T.name+'\n\n'+text+'\n');
+ let body='<div style="font-family:仿宋,宋体,serif;font-size:12pt;line-height:1.9">'+esc(text).replace(/\n/g,'<br>')+'</div>';
+ if(docTpl==='suit'){const c=curCase();if($('#docEv')&&$('#docEv').checked&&c&&c.evidence.length)body+='<h2>附：证据目录</h2>'+evdTableHtml(c)+'<p class="small">证据以正式提交并经法庭核对的版本为准。</p>'}
+ exportDoc(fname,T.name,body)}
+function docCopy(){copyText(docText())}
+/* ================= 文件脱敏 ================= */
+const PATS={
+ id:['身份证号',/(?<!\d)[1-9]\d{5}(?:18|19|20)\d{2}(?:0[1-9]|1[0-2])(?:0[1-9]|[12]\d|3[01])\d{3}[\dXx](?!\d)/g],
+ ph:['手机号',/(?<!\d)1[3-9]\d{9}(?!\d)/g],
+ em:['邮箱',/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g],
+ bk:['银行卡号',/(?<!\d)\d{15,19}(?!\d)/g],
+ am:['金额',/(?:人民币|￥|¥|RMB)\s*[0-9,，]+(?:\.[0-9]+)?(?:\s*元)?|[0-9,，]+(?:\.[0-9]+)?\s*万?元(?:整)?/g]};
+let lastMap=[];
+function rDesens(){const el=$('#tab-desens');
+ el.innerHTML='<div class="card"><h2>文件脱敏</h2><div class="sub">全程本机处理，文本不上传。固定产出两份：可外发的<b>脱敏文件</b> ＋ 可逆向回填的<b>映射表</b>（对外分享案例材料、提交培训素材等场景）。</div>'
+  +'<div class="two"><div>'
+  +'<label class="f">原文本</label><textarea class="f" id="dsIn" style="min-height:210px" placeholder="粘贴合同/案例材料文本，或点下方上传 .txt / .md"></textarea>'
+  +'<div class="filerow"><label class="btn" style="cursor:pointer">上传 .txt / .md<input type="file" accept=".txt,.md,.csv" style="display:none" onchange="dsFile(this)"></label><button class="btn btn-s" onclick="dsClear()">清空</button></div>'
+  +'<label class="f">自动识别</label><div class="row" style="gap:14px">'
+  +'<label class="mini"><input type="checkbox" id="dsId" checked> 身份证号</label>'
+  +'<label class="mini"><input type="checkbox" id="dsPh" checked> 手机号</label>'
+  +'<label class="mini"><input type="checkbox" id="dsEm" checked> 邮箱</label>'
+  +'<label class="mini"><input type="checkbox" id="dsBk" checked> 银行/长卡号</label>'
+  +'<label class="mini"><input type="checkbox" id="dsAm" checked> 金额</label></div>'
+  +'<label class="f">自定义敏感词（每行一个：公司名、人名、项目代号…）</label>'
+  +'<textarea class="f" id="dsWords" style="min-height:56px" placeholder="例：某某科技有限公司&#10;张三"></textarea>'
+  +'<div class="row" style="margin-top:10px"><button class="btn btn-p" onclick="desRun()">开始脱敏</button></div>'
+  +'</div><div>'
+  +'<label class="f">脱敏结果（可编辑）</label><textarea class="f" id="dsOut" style="min-height:210px"></textarea>'
+  +'<div class="filerow"><button class="btn btn-s" onclick="dsCopy()">复制</button>'
+  +'<button class="btn btn-s" onclick="dsDownTxt()">下载脱敏文件</button><button class="btn btn-s" onclick="dsDownDoc()">下载 .doc</button><button class="btn btn-s" onclick="dsDownMap()">下载映射表 CSV</button></div>'
+  +'<label class="f">映射表（原文 ↔ 占位符）</label><div id="dsMap" class="klist" style="max-height:190px">'
+  +(lastMap.length?mapTable():'<div class="mini" style="padding:8px">尚未生成</div>')+'</div>'
+  +'<div class="warnbox">外发前请检查：映射表仅留在本机，勿随脱敏文件一起发出。</div>'
+  +'</div></div>'
+  +'<h3>逆向回填（把脱敏文本还原为原文）</h3>'
+  +'<div class="two"><div><label class="f">脱敏文本</label><textarea class="f" id="dsBack" style="min-height:90px"></textarea></div>'
+  +'<div><label class="f">映射表 CSV（留空则使用本次会话生成的映射）</label><textarea class="f" id="dsMapIn" style="min-height:90px" placeholder="占位符,原文,类别,出现次数"></textarea>'
+  +'<div class="row" style="margin-top:8px"><button class="btn" onclick="dsRestore()">还原</button></div>'
+  +'<textarea class="f" id="dsRest" style="min-height:70px;margin-top:8px" placeholder="还原结果"></textarea></div></div></div>'}
+function mapTable(){return '<table><tr><th style="width:90px">占位符</th><th>原文</th><th style="width:76px">类别</th><th style="width:48px">次数</th></tr>'
+ +lastMap.map(m=>'<tr><td>'+esc(m.ph)+'</td><td class="wrap">'+esc(m.orig)+'</td><td>'+esc(m.cat)+'</td><td>'+m.n+'</td></tr>').join('')+'</table>'}
+function desRun(){const txt=$('#dsIn').value;
+ if(!txt.trim()){toast('请先粘贴或上传文本');return}
+ const words=$('#dsWords').value.split('\n').map(s=>s.trim()).filter(Boolean);
+ const map=new Map(),per={};
+ const put=(cat,orig,n)=>{if(map.has(orig)){map.get(orig).n+=n;return map.get(orig).ph}
+  per[cat]=(per[cat]||0)+1;const ph='['+cat+per[cat]+']';map.set(orig,{ph:ph,orig:orig,cat:cat,n:n});return ph};
+ let out=txt;
+ words.forEach(w=>{const parts=out.split(w);if(parts.length>1)out=parts.join(put('敏感词',w,parts.length-1))});
+ [['id','dsId'],['ph','dsPh'],['em','dsEm'],['bk','dsBk'],['am','dsAm']].forEach(p=>{
+  if($('#'+p[1]).checked)out=out.replace(PATS[p[0]][1],m=>put(PATS[p[0]][0],m,1))});
+ lastMap=Array.from(map.values());
+ $('#dsOut').value=out;
+ $('#dsMap').innerHTML=lastMap.length?mapTable():'<div class="mini" style="padding:8px">未发现匹配项（可补充自定义敏感词）</div>';
+ toast(lastMap.length?'已替换 '+lastMap.length+' 类敏感信息，请人工再核对一遍':'未发现匹配项')}
+function dsClear(){$('#dsIn').value=''}
+function dsFile(inp){const f=inp.files[0];if(!f)return;
+ if(f.size>2*1024*1024){toast('文件过大（>2MB），请分段粘贴');inp.value='';return}
+ const r=new FileReader();r.onload=()=>{$('#dsIn').value=String(r.result);toast('已读入：'+f.name)};r.readAsText(f,'utf-8');inp.value=''}
+function dsCopy(){copyText($('#dsOut').value)}
+function dsDownTxt(){const t=$('#dsOut').value;if(!t){toast('请先生成脱敏结果');return}exportText('脱敏文件-'+today()+'.txt',t)}
+function dsDownDoc(){const t=$('#dsOut').value;if(!t){toast('请先生成脱敏结果');return}
+ exportDoc('脱敏文件-'+today(),'脱敏文件','<div style="font-family:仿宋,宋体,serif;font-size:12pt;line-height:1.8">'+esc(t).replace(/\n/g,'<br>')+'</div><p class="small">本文件已脱敏：敏感信息以占位符替换，对应关系见内部映射表（勿随本文件外发）。</p>')}
+function dsDownMap(){if(!lastMap.length){toast('暂无映射');return}
+ exportCSV('脱敏映射表-'+today(),[['占位符','原文','类别','出现次数']].concat(lastMap.map(m=>[m.ph,m.orig,m.cat,m.n])))}
+function parseCSV(t){const rows=[];let row=[],cur='',q=false;
+ for(let i=0;i<t.length;i++){const ch=t[i];
+  if(q){if(ch==='"'){if(t[i+1]==='"'){cur+='"';i++}else q=false}else cur+=ch}
+  else{if(ch==='"')q=true;else if(ch===','){row.push(cur);cur=''}else if(ch==='\r'){}else if(ch==='\n'){row.push(cur);rows.push(row);row=[];cur=''}else cur+=ch}}
+ if(cur!==''||row.length){row.push(cur);rows.push(row)}
+ return rows.filter(r=>r.length&&!(r.length===1&&!r[0].trim()))}
+function dsRestore(){let t=$('#dsBack').value;if(!t.trim()){toast('请粘贴脱敏文本');return}
+ const raw=$('#dsMapIn').value.trim();let pairs=lastMap.map(m=>[m.ph,m.orig]);
+ if(raw){const rows=parseCSV(raw);if(rows.length&&rows[0][0]==='占位符')rows.shift();
+  pairs=rows.filter(r=>r.length>=2&&r[0]).map(r=>[r[0],r[1]])}
+ if(!pairs.length){toast('没有可用映射（先生成映射或粘贴映射表 CSV）');return}
+ let n=0;pairs.forEach(p=>{if(t.includes(p[0])){t=t.split(p[0]).join(p[1]);n++}});
+ $('#dsRest').value=t;toast('已回填 '+n+' 类占位符，请人工复核还原结果')}
+/* ================= 依据线索 ================= */
+function refModal(){const c=curCase();
+ modal({title:'记录依据线索',body:
+  fin('title','依据名称 *','','如：《中华人民共和国民法典》第五百七十七条')
+  +ftxt('excerpt','条文要旨 / 摘录','','条文原文或要旨，供直接引用',90)
+  +fin('url','来源链接','https://…')
+  +fin('verify','时效核验日期',today(),'在官方库核验当日有效')
+  +ftxt('note','备注','','',50),
+  onOk:()=>{const t=V('title');if(!t){toast('请填写依据名称');return false}
+   c.refs.push({id:uid('r'),title:t,excerpt:V('excerpt'),url:V('url'),verify:V('verify'),note:V('note')});save();render();toast('已记录')}})}
+function delRef(id){const c=curCase();modal({title:'删除依据',body:'<p>删除该条依据线索？</p>',okText:'删除',onOk:()=>{c.refs=c.refs.filter(x=>x.id!==id);save();render()}})}
+function refRows(c){return c.refs.map(r=>[r.title,r.excerpt||'',r.url||'',r.verify||'',r.note||''])}
+function refExport(kind){const c=curCase();if(!c.refs.length){toast('暂无依据');return}
+ const head=['依据名称','条文要旨/摘录','来源链接','时效核验日期','备注'];
+ if(kind==='md'){exportText(c.name+'-依据列表-'+today()+'.md','# 依据列表：'+c.name+'\n\n| '+head.join(' | ')+' |\n|---|---|---|---|---|\n'+refRows(c).map(r=>'| '+r.map(x=>String(x).replace(/\|/g,'\\|').replace(/\n/g,' ')).join(' | ')+' |').join('\n')+'\n');return}
+ exportDoc(c.name+'-依据列表-'+today(),'依据列表：'+c.name,docMeta(c)+'<h1>依据列表</h1><table><tr>'+head.map(h=>'<th>'+h+'</th>').join('')+'</tr>'
+  +refRows(c).map(r=>'<tr>'+r.map(x=>'<td>'+esc(x)+'</td>').join('')+'</tr>').join('')+'</table>'
+  +'<p class="small">时效核验日期为人工在官方库核验当日；引用前请再次核对现行有效版本与条文原文。</p>'+reviewFoot())}
+function rsSearch(){const q=$('#rsQ').value.trim();if(!q){toast('输入关键词');return}window.open('https://www.bing.com/search?q='+encodeURIComponent(q))}
+function rResearch(){const el=$('#tab-research'),c=curCase();
+ el.innerHTML='<div class="card"><h2>法条快查</h2><div class="sub">本工具不内置法规库——检索走公开渠道，<b>引用前务必到官方源核对现行有效版本与条文原文</b>（防止凭记忆引错）。</div>'
+  +'<div class="row"><input class="f grow" id="rsQ" style="flex:1;min-width:220px" placeholder="如：民法典 第五百七十七条 违约责任" onkeydown="if(event.key===\'Enter\')rsSearch()"><button class="btn btn-p" onclick="rsSearch()">🔍 搜索</button></div>'
+  +'<div class="filerow" style="margin-top:8px">'
+  +'<button class="btn btn-s" onclick="window.open(\'https://flk.npc.gov.cn/\')">国家法律法规数据库</button>'
+  +'<button class="btn btn-s" onclick="window.open(\'https://www.pkulaw.com/\')">北大法宝</button>'
+  +'<button class="btn btn-s" onclick="window.open(\'https://wenshu.court.gov.cn/\')">中国裁判文书网</button>'
+  +'<button class="btn btn-s" onclick="window.open(\'https://rmfyalk.court.gov.cn/\')">人民法院案例库</button></div>'
+  +'<div class="hint">建议路径：国家法律法规数据库核对法条现行文本 → 裁判文书网/人民法院案例库查类案 → 有订阅的用北大法宝。要用的依据记到下方「依据线索」，导出即成依据列表。</div></div>'
+  +(c?'<div class="card"><div class="row"><div class="grow"><h2>依据线索（'+esc(c.name)+'）</h2><div class="sub">共 '+c.refs.length+' 条 · 每条注明时效核验日期</div></div>'
+   +'<button class="btn btn-p" onclick="refModal()">＋ 记录依据</button><button class="btn" onclick="refExport(\'doc\')">导出 Word</button><button class="btn" onclick="refExport(\'md\')">Markdown</button></div>'
+   +(c.refs.length?'<div style="overflow:auto"><table><tr><th>依据名称 / 要旨</th><th style="width:110px">来源链接</th><th style="width:100px">核验日期</th><th style="width:60px">操作</th></tr>'
+    +c.refs.map(r=>'<tr><td class="wrap"><b>'+esc(r.title)+'</b>'+(r.excerpt?'<div class="mini">'+esc(r.excerpt)+'</div>':'')+(r.note?'<div class="mini">备注：'+esc(r.note)+'</div>':'')+'</td><td class="wrap">'+(r.url?'<a href="'+esc(r.url)+'" target="_blank" rel="noopener">打开</a>':'—')+'</td><td>'+esc(r.verify||'—')+'</td><td><button class="btn btn-s btn-d" onclick="delRef(\''+r.id+'\')">删</button></td></tr>').join('')
+    +'</table></div>':'<div class="empty">暂无依据。检索到要用的法条/案例后，点「＋ 记录依据」存进案件。</div>')+'</div>':'<div class="card"><div class="empty">依据线索挂在案件下：请先在页首选择案件</div></div>')}
+
+/* ================= AI（可选） ================= */
+async function aiChat(sys,user,maxtok){const s=DB.settings,k=(s.apiKey||'');
+ if(!k)throw new Error('未配置 API Key');
+ const hd=new Headers();hd.append('Content-Type','application/json');hd.append('Authorization','Bearer '+k);
+ const res=await fetch('https://open.bigmodel.cn/api/paas/v4/chat/completions',{method:'POST',
+  headers:hd,
+  body:JSON.stringify({model:s.model||'glm-4.6',messages:[{role:'system',content:sys},{role:'user',content:user}],temperature:0.3,max_tokens:maxtok||600})});
+ if(!res.ok){const t=await res.text();throw new Error('HTTP '+res.status+' '+(t||'').slice(0,120))}
+ const j=await res.json();const c2=j.choices&&j.choices[0]&&j.choices[0].message&&j.choices[0].message.content;
+ if(!c2)throw new Error('返回为空');return c2}
+
+/* ================= 设置 ================= */
+function stSave(){DB.settings.model=($('#stModel').value.trim()||'glm-4.6');const el=$('#stKey');if(el)DB.settings.apiKey=el.value.trim();save();toast('设置已保存（仅存本机浏览器）')}
+async function stTest(){const k=$('#stKey').value.trim();if(!k){toast('请先填写 API Key 再测试');return}
+ stSave();try{toast('测试连接中…');const r=await aiChat('你是连接测试助手，只回复固定内容。','请回复：连接正常',20);toast('连接成功：'+r.slice(0,40))}catch(e){toast('连接失败：'+e.message)}}
+function backupOut(){exportText('律师工作台备份-'+today()+'.json',JSON.stringify(DB,null,1),'application/json');toast('备份已导出')}
+function backupIn(inp){const f=inp.files[0];if(!f)return;const r=new FileReader();
+ r.onload=()=>{let d;try{d=JSON.parse(String(r.result))}catch(e){toast('不是有效的备份 JSON');return}
+  if(!d||!Array.isArray(d.cases)){toast('备份格式不对（缺 cases）');return}
+  modal({title:'导入备份',body:'<p>导入将<b>覆盖</b>当前全部数据（当前 '+DB.cases.length+' 个案件 → 备份中 '+d.cases.length+' 个）。建议先导出当前数据。</p>',okText:'覆盖导入',onOk:()=>{DB=d;if(!DB.settings)DB.settings={model:'glm-4.6'};if(!DB.seq)DB.seq=1;save();render();toast('已导入 '+DB.cases.length+' 个案件')}})};
+ r.readAsText(f,'utf-8');inp.value=''}
+function wipe(){modal({title:'清空全部数据',body:'<p>将删除所有案件与设置，且<b>不可恢复</b>。确定继续？</p>',okText:'下一步',onOk:()=>{modal({title:'再次确认',body:'<p>真的要清空吗？此操作无法撤销。</p>',okText:'确认清空',onOk:()=>{DB={cases:[],settings:{model:'glm-4.6'},cur:null,seq:1};save();render();toast('已清空')}})}})}
+function rSettings(){const el=$('#tab-settings');let size=0;try{size=(localStorage.getItem(LS)||'').length}catch(e){}
+ el.innerHTML='<div class="card"><h2>AI 设置（可选）</h2><div class="sub">不配置不影响任何本地功能。配置后可在「合同审查」用 🤖 AI 分析条款。API Key 只保存在<b>本机浏览器</b> localStorage，并会随「导出全部数据」一并备份，请自行保管。</div>'
+  +'<label class="f">智谱开放平台 API Key（在 open.bigmodel.cn 获取）</label><input class="f" id="stKey" type="password" value="'+esc(DB.settings.apiKey||'')+'" placeholder="粘贴 Key">'
+  +'<label class="f">模型名</label><input class="f" id="stModel" value="'+esc(DB.settings.model||'glm-4.6')+'">'
+  +'<div class="row" style="margin-top:10px"><button class="btn btn-p" onclick="stSave()">保存</button><button class="btn" onclick="stTest()">测试连接</button></div></div>'
+  +'<div class="card"><h2>数据管理</h2><div class="sub">所有数据存于本机浏览器 localStorage（当前约 '+Math.max(1,Math.ceil(size/1024))+' KB）。换电脑或清浏览器缓存前，请先导出备份。</div>'
+  +'<div class="filerow"><button class="btn btn-p" onclick="backupOut()">导出全部数据（JSON）</button>'
+  +'<label class="btn" style="cursor:pointer">导入 JSON 备份<input type="file" accept=".json" style="display:none" onchange="backupIn(this)"></label>'
+  +'<button class="btn btn-d" onclick="wipe()">清空全部数据</button></div></div>'
+  +'<div class="card"><h2>关于</h2><div class="sub">律师工作台 v1 · 单文件离线工具 · 工作流设计依据《AutoClaw 法律助手 Playbook》<br>声明：本工具输出均为工作初稿，不构成法律意见；正式对外文件请由执业律师复核签发。</div></div>'}
+
+/* ================= 使用指南 ================= */
+function showHelp(){modal({title:'使用指南',wide:true,body:
+ '<h3>快速上手</h3><ol style="line-height:2">'
+ +'<li><b>新建案件</b>（页首按钮）：填名称、委托人、我方立场——立场决定后面所有审查口径。</li>'
+ +'<li><b>时间线整理</b>：按日期记事件、注明来源材料；「已确认/待核实」一点即切换，待核实项不作为已认定事实。</li>'
+ +'<li><b>证据目录</b>：逐项登记证据与证明目的，发现缺口当场写补证建议。</li>'
+ +'<li><b>合同审查</b>：套用对应合同类型的要点清单逐项核查；粘贴条款原文标注风险等级（必须修改/建议谈判/可接受），一键导出审查意见表 Word。</li>'
+ +'<li><b>文书生成</b>：律师函/催款函/法律备忘录/民事起诉状模板填充，可引用当前案件信息与证据目录，导出 .doc。</li>'
+ +'<li><b>文件脱敏</b>：粘贴文本自动识别手机号/身份证/邮箱/卡号/金额＋自定义敏感词，产出脱敏文件＋映射表；映射表可逆向回填还原。</li>'
+ +'<li><b>依据线索</b>：检索到的法条/案例记录在案（注明时效核验日期），导出即成依据列表。</li></ol>'
+ +'<h3>核心纪律（与 Playbook 一致）</h3><ul style="line-height:1.9">'
+ +'<li>结论先行、依据与结论绑定；引用法条/案例前必须在官方源核对原文与时效。</li>'
+ +'<li>区分「已确认事实」与「待核实事实」，不把推测当事实。</li>'
+ +'<li>每份导出文件自带「待核实事项与复核提示」——正式对外前由执业律师复核。</li>'
+ +'<li>数据全在本机浏览器：换机/清缓存前先在「设置」导出 JSON 备份。</li></ul>'
+ +'<h3>常见问题</h3><ul style="line-height:1.9">'
+ +'<li>导出的 .doc 用 Word 打开若提示格式不匹配，选「是」继续即可，或改用 WPS；也可改用 CSV/Markdown 导出。</li>'
+ +'<li>AI 功能为可选项：设置里填智谱 API Key 并保存后可用，结果仅供参考。</li>'
+ +'<li>脱敏支持粘贴文本与 .txt/.md 上传；.docx 请先另存为文本再粘贴。</li></ul>'})}
+
+/* ================= 初始化 ================= */
+$('#btnHelp').onclick=showHelp;
+buildNav();render();
+if(!DB.cases.length)setTimeout(()=>toast('欢迎使用律师工作台：先在页首新建一个案件'),500);
+</script>
+<script>
+/* 演示数据种子：仅用于 demo-预览.html 截图，正式工具文件不含此段。所有人名/主体/号码均为虚构。 */
+(function(){
+var w=((location.hash||'').replace(/^#demo-/,'').replace(/^#/,'')||'kanban');
+DB={cases:[{
+ id:'c-demo',name:'星辰科技诉云帆贸易买卖合同纠纷',number:'Demo-2026-001',
+ client:'星辰科技有限公司',role:'原告代理',opponent:'云帆贸易有限公司',status:'进行中',notes:'演示数据，仅供界面预览',createdAt:Date.now(),
+ events:[
+  {id:'e1',date:'2026-01-10',title:'签订《智能设备买卖合同》，总价款 96 万元',source:'合同原件 p1-p8',confirmed:true,note:'约定验收后 180 日内付清（见第 5.2 条）'},
+  {id:'e2',date:'2026-02-01',title:'交付首批设备 40 台并经买方验收签收',source:'送货单、验收单',confirmed:true,note:''},
+  {id:'e3',date:'2026-03-15',title:'约定付款期届满，买方未支付尾款 66 万元',source:'对账单、银行流水',confirmed:true,note:''},
+  {id:'e4',date:'2026-04-02',title:'发出书面催告并留存送达凭证',source:'EMS 单号、催款函副本',confirmed:true,note:''},
+  {id:'e5',date:'2026-05-10',title:'微信沟通中对方承诺 6 月底前结清',source:'微信聊天记录导出',confirmed:false,note:'具体金额口径待与当事人核对'}],
+ evidence:[
+  {id:'d1',no:'1',name:'《智能设备买卖合同》',source:'原告自持',purpose:'证明买卖关系成立及付款约定',nature:'真实性预计无异议',gap:''},
+  {id:'d2',no:'2',name:'送货单及验收签收单（2026-02-01）',source:'原告自持',purpose:'证明已交付且验收合格',nature:'有对方签章',gap:''},
+  {id:'d3',no:'3',name:'银行交易流水（2026-01 至 2026-03）',source:'银行打印',purpose:'证明仅支付预付款 30 万元',nature:'需核对完整账期',gap:'缺加盖银行业务章的原件，建议补打并盖章'},
+  {id:'d4',no:'4',name:'微信聊天记录（催款沟通）',source:'手机导出',purpose:'证明对方承认欠款并承诺还款',nature:'电子证据，效力较弱',gap:'建议办公证或庭审演示原始载体'}],
+ clauses:[
+  {id:'l1',pos:'第 5.2 条',text:'买方应于全部设备验收合格后 180 日内一次性支付剩余货款。',level:'必须修改',type:'付款条件',note:'账期过长且无分期安排，建议改为验收合格后 30 日内支付 60%、60 日内付清，并增加逾期付款利息条款。'},
+  {id:'l2',pos:'第 7.1 条',text:'任何一方违约的，违约金为合同总金额的 0.01%。',level:'必须修改',type:'违约责任',note:'违约金明显过低，无法覆盖资金占用损失，建议调整为按日万分之五计算并设置合理上限。'},
+  {id:'l3',pos:'第 9.3 条',text:'因本合同发生的争议，由被告所在地人民法院管辖。',level:'建议谈判',type:'争议解决',note:'我方为原告方，被告所在地管辖将增加维权成本，争取改为原告所在地或合同签订地法院管辖。'},
+  {id:'l4',pos:'第 4.2 条',text:'设备验收以卖方出厂检验报告为准，买方应在收货后 7 日内提出书面异议，逾期视为验收合格。',level:'可接受',type:'验收与交付',note:'异议期偏短但配合完整签收单风险可控，可保留。'}],
+ refs:[
+  {id:'r1',title:'《中华人民共和国民法典》第五百七十七条',excerpt:'当事人一方不履行合同义务或者履行合同义务不符合约定的，应当承担继续履行、采取补救措施或者赔偿损失等违约责任。',url:'https://flk.npc.gov.cn',verify:'2026-10-15',note:'已在线核验现行有效'},
+  {id:'r2',title:'《中华人民共和国民法典》第六百二十八条',excerpt:'买受人应当按照约定的时间支付价款。',url:'https://flk.npc.gov.cn',verify:'2026-10-15',note:'已在线核验现行有效'}],
+ checklist:{type:'买卖合同',items:[
+  {id:'k1',text:'标的物名称、规格、数量与质量标准',done:true,note:'合同第 1、2 条，明确'},
+  {id:'k2',text:'包装、运输方式与费用承担',done:true,note:'第 3 条，卖方承担'},
+  {id:'k3',text:'交付时间、地点与风险转移节点',done:true,note:'第 4.1 条'},
+  {id:'k4',text:'验收程序、异议期限及「逾期未提异议视为合格」的合理性',done:true,note:'第 4.2 条异议期偏短，见标注'},
+  {id:'k5',text:'价款、发票类型与付款节奏',done:true,note:'第 5 条，问题见第 5.2 条标注'},
+  {id:'k6',text:'所有权保留条款',done:false,note:''},
+  {id:'k7',text:'质保期、退换货与违约赔偿上限',done:false,note:'违约金问题见第 7.1 条标注'},
+  {id:'k8',text:'逾期付款利息与逾期交货违约金是否对等',done:false,note:'待与对方对账后补充'}]}
+}],settings:{model:'glm-4.6'},cur:'c-demo',seq:99};
+save();
+if(w==='docs'){docTpl='demand';
+ docVals={'demand.to':'云帆贸易有限公司','demand.sender':'星辰科技有限公司','demand.contractNo':'XCKJ-MY-2026-001','demand.dueDate':'2026-03-15','demand.amount':'660,000','demand.detail':'设备尾款 66 万元（合同总价 96 万元，已付预付款 30 万元）','demand.interest':'按全国银行间同业拆借中心公布的一年期贷款市场报价利率（LPR）加计 50%','demand.account':'开户行：某某银行某某支行（正式函件另附账号）','demand.deadline':'收函后 7 日内','demand.date':'2026-10-15'};}
+TAB=w;buildNav();render();
+if(w==='desens'){
+ document.querySelector('#dsIn').value='经查，星辰科技有限公司经办人张伟（手机 13812345678，邮箱 zhangwei@xingchen-demo.cn，身份证 110101199003077778）与云帆贸易采购负责人李娜（手机 13998887766）于 2026 年 1 月 10 日签订《智能设备买卖合同》，约定货款人民币 960,000 元，云帆贸易已支付 ￥300,000 元，余款 660,000 元至今未付。张伟称，李娜在微信中承诺 6 月底前结清全部欠款。';
+ document.querySelector('#dsWords').value='星辰科技有限公司\n云帆贸易\n张伟\n李娜';
+ desRun();
+}
+})();
+
+</script>
+</body>
+</html>
